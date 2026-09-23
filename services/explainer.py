@@ -5,14 +5,33 @@ from dotenv import load_dotenv
 
 from google import genai
 
+GEMINI_MODEL = "gemini-3.6-flash"
+
 # Load environment variables from .env if present
 load_dotenv()
+
+
+def _get_api_key() -> str | None:
+    api_key = os.getenv("GEMINI_API_KEY")
+    if api_key:
+        return api_key
+
+    try:
+        import streamlit as st
+
+        return st.secrets.get("GEMINI_API_KEY")
+    except (ImportError, FileNotFoundError, KeyError):
+        return None
+
+
+def _normalize_model_name(model_name: str) -> str:
+    return model_name.removeprefix("gemini/").removeprefix("models/")
 
 def get_gemini_client():
     """
     Initialize and return the Gemini client if GEMINI_API_KEY is available.
     """
-    api_key = os.getenv("GEMINI_API_KEY")
+    api_key = _get_api_key()
 
     if not api_key or api_key == "your_gemini_api_key_here":
         return None, "Gemini API key not configured. Please set GEMINI_API_KEY in your .env file or environment."
@@ -59,7 +78,7 @@ def _parse_response(response: Any) -> Dict[str, Any]:
 
 def generate_explanation(
     transaction: Dict[str, Any],
-    model_name: str = "llama-3.3-70b-versatile",
+    model_name: str = GEMINI_MODEL,
 ) -> Dict[str, Any]:
     """Generate a grounded, customer-friendly explanation for a transaction.
 
@@ -104,7 +123,7 @@ The summary must be a string. Reasons and recommended_actions must be arrays of 
 
     try:
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model=_normalize_model_name(model_name),
             contents=system_prompt + "\n\n" + user_prompt,
         )
         try:
@@ -118,13 +137,22 @@ The summary must be a string. Reasons and recommended_actions must be arrays of 
                 }
             raise parse_error
     except Exception as e:
+        error_text = str(e)
+        if "401" in error_text or "403" in error_text or "api key" in error_text.lower():
+            error_text = "Invalid or unauthorized Gemini API key."
+        elif "404" in error_text or "not found" in error_text.lower():
+            error_text = f"Gemini model '{_normalize_model_name(model_name)}' was not found."
+        elif "429" in error_text or "quota" in error_text.lower() or "rate limit" in error_text.lower():
+            error_text = "Gemini API quota or rate limit reached. Please try again later."
+        elif not error_text:
+            error_text = "Gemini network or API error."
         return {
             **empty_result,
-            "summary": f"Gemini API error: {str(e)}",
+            "summary": f"Gemini API error: {error_text}",
         }
 
 
-def generate_anomaly_explanation(transaction: Dict[str, Any], model_name: str = "llama-3.3-70b-versatile") -> Tuple[str, bool]:
+def generate_anomaly_explanation(transaction: Dict[str, Any], model_name: str = GEMINI_MODEL) -> Tuple[str, bool]:
     """
     Sends the selected transaction metadata to Gemini to generate an explicit,
     expert banking anomaly explanation and recommended action plan.
@@ -198,7 +226,7 @@ Ensure all numbers, amounts, locations, and device details from the JSON are exp
 
     try:
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model=_normalize_model_name(model_name),
             contents=system_prompt + "\n\n" + user_prompt,
         )
         explanation = getattr(response, "text", None)
@@ -206,4 +234,13 @@ Ensure all numbers, amounts, locations, and device details from the JSON are exp
             raise ValueError("Gemini returned an empty response.")
         return explanation, False
     except Exception as e:
-        return f"⚠️ **Gemini API Error**: {str(e)}", True
+        error_text = str(e)
+        if "401" in error_text or "403" in error_text or "api key" in error_text.lower():
+            error_text = "Invalid or unauthorized Gemini API key."
+        elif "404" in error_text or "not found" in error_text.lower():
+            error_text = f"Gemini model '{_normalize_model_name(model_name)}' was not found."
+        elif "429" in error_text or "quota" in error_text.lower() or "rate limit" in error_text.lower():
+            error_text = "Gemini API quota or rate limit reached. Please try again later."
+        elif not error_text:
+            error_text = "Gemini network or API error."
+        return f"Gemini API error: {error_text}", True

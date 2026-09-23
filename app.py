@@ -3,7 +3,7 @@ import os
 
 import streamlit as st
 
-from services.explainer import generate_explanation
+from services.explainer import GEMINI_MODEL, generate_explanation
 
 
 st.set_page_config(
@@ -106,7 +106,7 @@ with st.sidebar:
     )
     model_name = st.selectbox(
         "AI model",
-        options=["llama-3.3-70b-versatile", "llama-3.1-8b-instant"],
+        options=[GEMINI_MODEL],
     )
 
 selected_transaction = transaction_options[selected_id]

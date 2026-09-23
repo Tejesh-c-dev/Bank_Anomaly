@@ -2,7 +2,7 @@
 
 An interactive, professional banking application built with **Python**, **Streamlit**, **Pandas**, and the **Gemini API**.
 
-This tool inspects flagged banking transactions, visualizes key metrics and anomaly rule triggers, and leverages Gemini (`gemini-2.5-flash`) to generate human-readable explanations and actionable mitigation steps for compliance and fraud prevention officers.
+This tool inspects flagged banking transactions, visualizes key metrics and anomaly rule triggers, and leverages Gemini (`gemini-3.6-flash`) to generate human-readable explanations and actionable mitigation steps for compliance and fraud prevention officers.
 
 ---
 
@@ -27,7 +27,7 @@ This tool inspects flagged banking transactions, visualizes key metrics and anom
 1. **Synthetic Transaction Ledger**: Realistically models fraud indicators including Impossible Geo-Velocity, TOR exit nodes, card testing micro-purchases, and rapid account draining.
 2. **Interactive Risk Filtering**: Dynamic search by customer name, merchant, account ID, anomaly status, or risk score threshold.
 3. **Deep Inspector View**: Side-by-side inspection of transaction metadata, historical 90-day average amount comparison, and device fingerprinting.
-4. **AI Anomaly Explanation**: One-click generation of structured AI risk assessments via Gemini API (`gemini-2.5-flash`).
+4. **AI Anomaly Explanation**: One-click generation of structured AI risk assessments via Gemini API (`gemini-3.6-flash`).
 5. **Actionable Mitigation Guidance**: Outputs prioritized response steps (Immediate Lock, Out-of-band Verification, SAR Compliance filing).
 6. **Graceful Fallback & Error Handling**: Includes demo mode and offline heuristic fallback if API key is not configured.
 
@@ -84,5 +84,5 @@ Open your browser at `http://localhost:8501`.
 - **Python 3.10+**
 - **Streamlit**: Web dashboard framework
 - **Pandas**: Data manipulation and transaction table filtering
-- **Gemini API (`google-genai`)**: Gemini inference engine (`gemini-2.5-flash`)
+- **Gemini API (`google-genai`)**: Gemini inference engine (`gemini-3.6-flash`)
 - **Python-Dotenv**: Environment configuration management
